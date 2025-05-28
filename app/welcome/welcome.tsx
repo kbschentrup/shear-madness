@@ -14,7 +14,7 @@ export function Welcome() {
   };
 
   return (
-    <main className="flex items-center justify-center pt-16 pb-4 bg-gray-100 dark:bg-gray-800">
+    <main className="flex items-center justify-center pt-16 pb-4 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 min-h-screen">
       <div className="flex-1 flex flex-col items-center gap-4 min-h-0">
         <header className="flex flex-col items-center gap-4">
           <div className="w-[500px] max-w-[100vw]">

@@ -9,7 +9,7 @@ export function Welcome() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (tournamentName.trim()) {
-      navigate(`/tournament/${encodeURIComponent(tournamentName)}`);
+      navigate(`/tournament?name=${encodeURIComponent(tournamentName)}`);
     }
   };
 

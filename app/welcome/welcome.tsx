@@ -1,15 +1,21 @@
 import logo from "./Gemini_Generated_Image_o61wnho61wnho61w-removebg-preview.png";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { addTournament } from "../backend/api"; 
 
 export function Welcome() {
   const navigate = useNavigate();
   const [tournamentName, setTournamentName] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (tournamentName.trim()) {
-      navigate(`/tournament?name=${encodeURIComponent(tournamentName)}`);
+      try {
+        const tournament = await addTournament(tournamentName);
+        navigate(`/tournament?name=${encodeURIComponent(tournament.name)}&id=${tournament.id}`);
+      } catch (error) {
+        console.error("Failed to save tournament:", error);
+      }
     }
   };
 

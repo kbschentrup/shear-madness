@@ -41,3 +41,13 @@ export function getPlayersRealTime(tournamentId: string, callback: (players: any
     throw error;
   }
 }
+
+export async function getTournament(tournamentId: string) {
+  try {
+    const tournament = await pb.collection('tournaments').getOne(tournamentId);
+    return tournament;
+  } catch (error) {
+    console.error('Error fetching tournament:', error);
+    throw error;
+  }
+}

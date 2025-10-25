@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { QRCodeCanvas } from 'qrcode.react';
-import { getTournament } from "../backend/api";
+import { getTournament, getPlayersRealTime, getPlayers } from "../backend/api";
 
 export default function Tournament() {
   const [name, setName] = useState('');
   const [id, setId] = useState('');
   const [url, setUrl] = useState('');
+  const [players, setPlayers] = useState<any[]>([]);
 
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
@@ -19,6 +20,14 @@ export default function Tournament() {
         setName(tournament.name);
       });
     }
+
+    getPlayers(id).then((playersList) => {
+      setPlayers(playersList);
+    });
+
+    getPlayersRealTime(id, (playersList) => {
+      setPlayers(playersList);
+    });
   }, [id]);
 
   return (
@@ -46,6 +55,20 @@ export default function Tournament() {
             level={"H"}
             includeMargin={true}
           />
+        )}
+      </div>
+      <div className="mt-12">
+        <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Registered Players</h2>
+        {players.length === 0 ? (
+          <p className="text-gray-700 dark:text-gray-200">No players have registered yet.</p>
+        ) : (
+          <ul className="list-disc list-inside space-y-2">
+            {players.map((player) => (
+              <li key={player.id} className="text-gray-900 dark:text-gray-100">
+                {player.playerName}
+              </li>
+            ))}
+          </ul>
         )}
       </div>
     </div>

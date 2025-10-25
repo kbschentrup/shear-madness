@@ -58,9 +58,16 @@ async function ensureUserAuthenticated() {
 export async function addTournament(name: string) {
   try {
     // Ensure user is authenticated (create temp account if needed)
-    await ensureUserAuthenticated();
+    const user = await ensureUserAuthenticated();
+
+    if (!user) {
+      throw new Error('User authentication failed');
+    }
     
-    const tournament = await pb.collection('tournaments').create({ name });
+    const tournament = await pb.collection('tournaments').create({ 
+      name,
+      ownerId: user.id,
+    });
     return tournament;
   } catch (error) {
     console.error('Error adding tournament:', error);
@@ -88,16 +95,30 @@ export async function getPlayersRealTime(tournamentId: string, callback: (player
     // Ensure user is authenticated (create temp account if needed)
     await ensureUserAuthenticated();
 
-    return pb.collection('players').subscribe('*', (e) => {
+    return pb.collection('players').subscribe(`*`, (e) => {
+      console.log('Real-time event received for players:', e);
       if (e.action === 'create' || e.action === 'update' || e.action === 'delete') {
-        pb.collection('players')
-          .getFullList({ filter: `tournamentId = "${tournamentId}"` })
+        getPlayers(tournamentId)
           .then(callback)
           .catch((error) => console.error('Error fetching players:', error));
       }
     });
   } catch (error) {
     console.error('Error subscribing to players:', error);
+    throw error;
+  }
+}
+
+export async function getPlayers(tournamentId: string) {
+  try {
+    await ensureUserAuthenticated();
+
+    const players = await pb.collection('players').getFullList({
+      filter: `tournamentId = "${tournamentId}"`
+    });
+    return players;
+  } catch (error) {
+    console.error('Error fetching players:', error);
     throw error;
   }
 }

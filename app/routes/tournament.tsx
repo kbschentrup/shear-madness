@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import {QRCodeCanvas} from 'qrcode.react';
+import { QRCodeCanvas } from 'qrcode.react';
+import { getTournament } from "../backend/api";
 
 export default function Tournament() {
   const [name, setName] = useState('');
@@ -8,13 +9,15 @@ export default function Tournament() {
 
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
-    setName(queryParams.get('name') || '');
     setId(queryParams.get('id') || '');
   }, []);
 
   useEffect(() => {
     if (id) {
       setUrl(`${window.location.origin}/tournament/${id}/signup`);
+      getTournament(id).then((tournament) => {
+        setName(tournament.name);
+      });
     }
   }, [id]);
 

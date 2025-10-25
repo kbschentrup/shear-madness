@@ -67,10 +67,23 @@ export async function addTournament(name: string) {
     const tournament = await pb.collection('tournaments').create({ 
       name,
       ownerId: user.id,
+      status: 'signup',
     });
     return tournament;
   } catch (error) {
     console.error('Error adding tournament:', error);
+    throw error;
+  }
+}
+
+export async function startTournament(tournamentId: string) {
+  try {
+    const tournament = await pb.collection('tournaments').update(tournamentId, {
+      status: 'playing',
+    });
+    return tournament;
+  } catch (error) {
+    console.error('Error starting tournament:', error);
     throw error;
   }
 }
@@ -141,6 +154,118 @@ export async function getPlayer(playerId: string) {
     return player;
   } catch (error) {
     console.error('Error fetching player:', error);
+    throw error;
+  }
+}
+
+export async function getTournamentsByOwner() {
+  try {
+    const user = await ensureUserAuthenticated();
+
+    if (!user) {
+      throw new Error('User authentication failed');
+    }
+
+    const tournaments = await pb.collection('tournaments').getFullList({
+      filter: `ownerId = "${user.id}"`
+    });
+    return tournaments;
+  } catch (error) {
+    console.error('Error fetching tournaments by owner:', error);
+    throw error;
+  }
+}
+
+export async function createMatch(matchData: {
+  tournamentId: string;
+  round: number;
+  team1Player1: string | null;
+  team1Player2: string | null;
+  team2Player1: string | null;
+  team2Player2: string | null;
+}) {
+  try {
+    await ensureUserAuthenticated();
+
+    // Create new match
+    const match = await pb.collection('matches').create({
+      tournamentId: matchData.tournamentId,
+      round: matchData.round,
+      team1: [matchData.team1Player1, matchData.team1Player2],
+      team2: [matchData.team2Player1, matchData.team2Player2],
+      winningTeam: null,
+    });
+
+    return mapMatchData(match);
+  } catch (error) {
+    console.error('Error saving match:', error);
+    throw error;
+  }
+}
+
+export async function updateMatch(matchData: {
+  matchId: string;
+  round: number;
+  team1Player1: string | null;
+  team1Player2: string | null;
+  team2Player1: string | null;
+  team2Player2: string | null;
+  winningTeam: number | null;
+}) {
+  try {
+    await ensureUserAuthenticated();
+
+    const match = await pb.collection('matches').update(matchData.matchId, {
+      round: matchData.round,
+      team1: [matchData.team1Player1, matchData.team1Player2],
+      team2: [matchData.team2Player1, matchData.team2Player2],
+      winningTeam: matchData.winningTeam,
+    });
+
+    return mapMatchData(match);
+  } catch (error) {
+    console.error('Error saving match:', error);
+    throw error;
+  }
+}
+
+export async function getMatches(tournamentId: string) {
+  try {
+    await ensureUserAuthenticated();
+
+    const matches = await pb.collection('matches').getFullList({
+      filter: `tournamentId = "${tournamentId}"`,
+      sort: 'round',
+      expand: 'team1,team2',
+    });
+    return matches.map(match => mapMatchData(match));
+  } catch (error) {
+    console.error('Error fetching matches:', error);
+    throw error;
+  }
+}
+
+function mapMatchData(match: any) {
+  return {
+    tournamentId: match.tournamentId,
+    matchId: match.id,
+    round: match.round,
+    team1Player1: match?.expand?.team1?.[0] ? { id: match.expand.team1[0].id, playerName: match.expand.team1[0].playerName } : null,
+    team1Player2: match?.expand?.team1?.[1] ? { id: match.expand.team1[1].id, playerName: match.expand.team1[1].playerName } : null,
+    team2Player1: match?.expand?.team2?.[0] ? { id: match.expand.team2[0].id, playerName: match.expand.team2[0].playerName } : null,
+    team2Player2: match?.expand?.team2?.[1] ? { id: match.expand.team2[1].id, playerName: match.expand.team2[1].playerName } : null,
+    winningTeam: match.winningTeam,
+  };
+}
+
+export async function deleteAllMatches(tournamentId: string) {
+  try {
+    await ensureUserAuthenticated();
+
+    const matches = await getMatches(tournamentId);
+    await Promise.all(matches.map(match => pb.collection('matches').delete(match.matchId)));
+  } catch (error) {
+    console.error('Error deleting matches:', error);
     throw error;
   }
 }

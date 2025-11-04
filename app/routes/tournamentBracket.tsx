@@ -261,12 +261,12 @@ export default function TournamentBracket() {
                                                 {/* Team 1 */}
                                                 {match.team1 && (
                                                     <div
-                                                        onClick={() => !match.winningTeam && match.team2 && selectWinner(match.id, 1)}
-                                                        className={`p-3 mb-3 rounded-lg cursor-pointer transition-all ${match.winningTeam === 1
+                                                        onClick={() => !match.winningTeam && selectWinner(match.id, 1)}
+                                                        className={`p-3 mb-3 rounded-lg transition-all ${match.winningTeam === 1
                                                             ? 'bg-green-500 text-white font-bold shadow-lg scale-105'
                                                             : match.team2
-                                                                ? 'bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800 border-2 border-blue-300 dark:border-blue-700'
-                                                                : 'bg-gray-100 dark:bg-gray-600'
+                                                                ? 'cursor-pointer bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800 border-2 border-blue-300 dark:border-blue-700'
+                                                                : 'bg-gray-100 dark:bg-gray-600 cursor-pointer opacity-75'
                                                             }`}
                                                     >
                                                         <div className="font-semibold text-sm">Team 1</div>

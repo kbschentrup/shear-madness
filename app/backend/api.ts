@@ -158,6 +158,15 @@ export async function getPlayer(playerId: string) {
   }
 }
 
+export async function removePlayer(playerId: string) {
+  try {
+    await pb.collection('players').delete(playerId);
+  } catch (error) {
+    console.error('Error removing player:', error);
+    throw error;
+  }
+}
+
 export async function getTournamentsByOwner() {
   try {
     const user = await ensureUserAuthenticated();

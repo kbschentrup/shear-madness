@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { QRCodeCanvas } from 'qrcode.react';
-import { getTournament, getPlayersRealTime, getPlayers, startTournament } from "../backend/api";
+import { getTournament, getPlayersRealTime, getPlayers, startTournament, removePlayer } from "../backend/api";
 
 export default function Tournament() {
   const [name, setName] = useState('');
@@ -105,8 +105,23 @@ export default function Tournament() {
             <>
               <ul className="divide-y divide-gray-200 dark:divide-gray-600">
                 {players.map((player) => (
-                  <li key={player.id} className="py-3 px-2 text-gray-900 dark:text-gray-100">
-                    {player.playerName}
+                  <li key={player.id} className="py-3 px-2 text-gray-900 dark:text-gray-100 flex items-center justify-between group">
+                    <span>{player.playerName}</span>
+                    <button
+                      onClick={() => {
+                        if (window.confirm(`Are you sure you want to remove ${player.playerName} from the tournament?`)) {
+                          removePlayer(player.id).then(() => {
+                            setPlayers(players.filter(p => p.id !== player.id));
+                          });
+                        }
+                      }}
+                      className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="Remove player"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </button>
                   </li>
                 ))}
               </ul>

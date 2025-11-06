@@ -16,7 +16,7 @@ interface Match {
     id: string;
     team1: Team | null;
     team2: Team | null;
-    winningTeam: 1 | 2 | null;
+    winningTeam: 1 | 2 | null | 0;
     round: number;
 }
 
@@ -147,7 +147,7 @@ export default function TournamentBracket() {
 
         // Check if all matches in current round are complete
         const currentRoundMatches = updatedMatches.filter(m => m.round === currentRound);
-        const allComplete = currentRoundMatches.every(m => m.winningTeam !== null);
+        const allComplete = currentRoundMatches.every(m => m.winningTeam != 0);
 
         // Only create next round if all matches are complete AND there's more than 1 match
         // This ensures we always have 2 teams for the next match
@@ -159,12 +159,11 @@ export default function TournamentBracket() {
                 return null as any;
             }).filter(team => team !== null);
 
-            // Create next round matches - only pairs of 2 teams
+            // Create next round matches - pairs of 2 teams, with bye for odd team
             const nextRoundMatches: Match[] = [];
             for (let i = 0; i < winningTeams.length; i += 2) {
-                // Only create match if we have both teams
                 if (winningTeams[i] && winningTeams[i + 1]) {
-                    // Save new match to PocketBase
+                    // Both teams exist - create a normal match
                     const match = await createMatch({
                         tournamentId: id,
                         round: currentRound + 1,
@@ -178,6 +177,24 @@ export default function TournamentBracket() {
                         id: match.matchId,
                         team1: winningTeams[i],
                         team2: winningTeams[i + 1],
+                        winningTeam: match.winningTeam,
+                        round: match.round
+                    });
+                } else if (winningTeams[i]) {
+                    // Odd team gets a bye - create match with only team1
+                    const match = await createMatch({
+                        tournamentId: id,
+                        round: currentRound + 1,
+                        team1Player1: winningTeams[i].player1.id,
+                        team1Player2: winningTeams[i].player2.id,
+                        team2Player1: null,
+                        team2Player2: null,
+                    });
+
+                    nextRoundMatches.push({
+                        id: match.matchId,
+                        team1: winningTeams[i],
+                        team2: null,
                         winningTeam: match.winningTeam,
                         round: match.round
                     });

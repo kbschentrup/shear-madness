@@ -74,26 +74,57 @@ export default function TournamentBracket() {
             }
         }
 
-        // Create first round matches (each match has 2 teams)
+        // Calculate the next power of 2 to determine bracket size
+        const nextPowerOf2 = Math.pow(2, Math.ceil(Math.log2(teams.length)));
+        const numByes = nextPowerOf2 - teams.length;
+
+        // Create first round matches
         const firstRoundMatches: Match[] = [];
-        for (let i = 0; i < teams.length; i += 2) {
-            // Save to PocketBase
+        let teamIndex = 0;
+
+        // First, create matches with byes (teams that advance automatically)
+        for (let i = 0; i < numByes; i++) {
             const match = await createMatch({
                 tournamentId: id,
                 round: 1,
-                team1Player1: teams[i]?.player1.id || null,
-                team1Player2: teams[i]?.player2.id || null,
-                team2Player1: teams[i + 1]?.player1.id || null,
-                team2Player2: teams[i + 1]?.player2.id || null,
+                team1Player1: teams[teamIndex].player1.id,
+                team1Player2: teams[teamIndex].player2.id,
+                team2Player1: null,
+                team2Player2: null,
             });
 
             firstRoundMatches.push({
                 id: match.matchId,
-                team1: teams[i] || null,
-                team2: teams[i + 1] || null,
+                team1: teams[teamIndex],
+                team2: null,
                 winningTeam: match.winningTeam,
                 round: match.round
             });
+
+            teamIndex++;
+        }
+
+        // Then create regular matches with the remaining teams
+        const remainingTeams = teams.slice(teamIndex);
+        for (let i = 0; i < remainingTeams.length; i += 2) {
+            if (remainingTeams[i] && remainingTeams[i + 1]) {
+                const match = await createMatch({
+                    tournamentId: id,
+                    round: 1,
+                    team1Player1: remainingTeams[i].player1.id,
+                    team1Player2: remainingTeams[i].player2.id,
+                    team2Player1: remainingTeams[i + 1].player1.id,
+                    team2Player2: remainingTeams[i + 1].player2.id,
+                });
+
+                firstRoundMatches.push({
+                    id: match.matchId,
+                    team1: remainingTeams[i],
+                    team2: remainingTeams[i + 1],
+                    winningTeam: match.winningTeam,
+                    round: match.round
+                });
+            }
         }
 
         setMatches(firstRoundMatches);
@@ -130,19 +161,20 @@ export default function TournamentBracket() {
 
         // Check if all matches in current round are complete
         const currentRoundMatches = updatedMatches.filter(m => m.round === currentRound);
-        const allComplete = currentRoundMatches.every(m => m.winningTeam != 0);
+        const allComplete = currentRoundMatches.every(m => m.winningTeam !== null && m.winningTeam !== 0);
 
         // Only create next round if all matches are complete AND there's more than 1 match
-        // This ensures we always have 2 teams for the next match
         if (allComplete && currentRoundMatches.length > 1) {
-            // Collect all winning teams
+            // Collect all winning teams (including those with byes)
             const winningTeams: Team[] = currentRoundMatches.map(match => {
                 if (match.winningTeam === 1 && match.team1) return match.team1;
                 if (match.winningTeam === 2 && match.team2) return match.team2;
+                // Handle bye matches - team1 automatically advances
+                if (!match.team2 && match.team1) return match.team1;
                 return null as any;
             }).filter(team => team !== null);
 
-            // Create next round matches - pairs of 2 teams, with bye for odd team
+            // Create next round matches - pairs of 2 teams only (no more byes after round 1)
             const nextRoundMatches: Match[] = [];
             for (let i = 0; i < winningTeams.length; i += 2) {
                 if (winningTeams[i] && winningTeams[i + 1]) {
@@ -160,24 +192,6 @@ export default function TournamentBracket() {
                         id: match.matchId,
                         team1: winningTeams[i],
                         team2: winningTeams[i + 1],
-                        winningTeam: match.winningTeam,
-                        round: match.round
-                    });
-                } else if (winningTeams[i]) {
-                    // Odd team gets a bye - create match with only team1
-                    const match = await createMatch({
-                        tournamentId: id,
-                        round: currentRound + 1,
-                        team1Player1: winningTeams[i].player1.id,
-                        team1Player2: winningTeams[i].player2.id,
-                        team2Player1: null,
-                        team2Player2: null,
-                    });
-
-                    nextRoundMatches.push({
-                        id: match.matchId,
-                        team1: winningTeams[i],
-                        team2: null,
                         winningTeam: match.winningTeam,
                         round: match.round
                     });

@@ -1,20 +1,28 @@
-# shear-madness
+# Shear Madness 🎮✂️
 
-A modern, production-ready template for building full-stack React applications using React Router.
+A real-time tournament management application for Cornhole competitions. Built with React Router 7, TypeScript, and PocketBase, Shear Madness makes it easy to organize and run tournaments with QR code player sign-ups and live bracket updates.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+**🚀 [Try the live app here!](https://shear-madness.schentrupsoftware.com/)**
 
-## Features
+## ✨ Features
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+- 🎯 **Tournament Management**: Create and manage Cornhole tournaments with ease
+- 📱 **QR Code Sign-ups**: Generate QR codes for quick player registration
+- � **Real-time Updates**: Live bracket updates as matches progress using PocketBase real-time subscriptions
+- 🏆 **Tournament Brackets**: Visual bracket display showing match progression
+- 🔒 **TypeScript**: Full type safety throughout the application
+- � **TailwindCSS**: Modern, responsive styling
+- �️ **PocketBase Backend**: Lightweight, real-time database with built-in authentication
 
-## Getting Started
+## 🎮 How It Works
+
+1. **Create a Tournament**: Set up a new Cornhole tournament
+2. **Player Sign-up**: Share the QR code for players to join via their mobile devices
+3. **Start Tournament**: Once all players are registered, initialize the bracket
+4. **Play Matches**: Update match results in real-time as players compete
+5. **Track Progress**: Watch the bracket fill out as winners advance
+
+## 🚀 Getting Started
 
 ### Installation
 
@@ -34,54 +42,32 @@ npm run dev
 
 Your application will be available at `http://localhost:5173`.
 
-## Building for Production
+> **Note**: The local app points to the running production instace of pocketbase. Configure the PocketBase connection in `app/backend/pocketbaseClient.ts` if you want to use a local version instead.
 
-Create a production build:
+## 🛠️ Tech Stack
 
-```bash
-npm run build
-```
+- **Frontend**: React 19, React Router 7, TypeScript
+- **Styling**: TailwindCSS
+- **Backend**: PocketBase (real-time database)
+- **Build Tool**: Vite
+- **QR Codes**: qrcode.react
+- **Deployment**: Docker, containerized deployment
 
-## Deployment
+## 📚 Project Structure
 
-### Docker Deployment
+- `app/routes/` - Application pages (home, tournament, bracket, signup, player)
+- `app/backend/` - Backend API integration and PocketBase client
+- `app/welcome/` - Landing page components
+- `public/` - Static assets
 
-To build and run using Docker:
-
-```bash
-docker build -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
-```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## Styling
+## 🎨 Styling
 
 This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
 
+## 📝 License
+
+This project is open source and available under the MIT License.
+
 ---
 
-Built with ❤️ using React Router.
+Built with ❤️ by Schentrup Software using React Router | [Visit Live App](https://shear-madness.schentrupsoftware.com/)

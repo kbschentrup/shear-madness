@@ -91,9 +91,13 @@ export async function startTournament(tournamentId: string) {
 // Function to add a player to a tournament
 export async function addPlayer(tournamentId: string, playerName: string) {
   try {
+    // Ensure user is authenticated (create temp account if needed)
+    const user = await ensureUserAuthenticated();
+
     const player = await pb.collection('players').create({
       tournamentId,
       playerName,
+      userId: user?.id,
     });
     return player;
   } catch (error) {
@@ -127,7 +131,8 @@ export async function getPlayers(tournamentId: string) {
     await ensureUserAuthenticated();
 
     const players = await pb.collection('players').getFullList({
-      filter: `tournamentId = "${tournamentId}"`
+      sort: '-created',
+      filter: `tournamentId = "${tournamentId}"`,
     });
     return players;
   } catch (error) {
@@ -138,6 +143,8 @@ export async function getPlayers(tournamentId: string) {
 
 export async function getTournament(tournamentId: string) {
   try {
+    await ensureUserAuthenticated();
+
     const tournament = await pb.collection('tournaments').getOne(tournamentId);
     return tournament;
   } catch (error) {
@@ -148,6 +155,8 @@ export async function getTournament(tournamentId: string) {
 
 export async function getPlayer(playerId: string) {
   try {
+    await ensureUserAuthenticated();
+
     const player = await pb.collection('players').getOne(playerId, {
       expand: 'tournamentId'
     });
@@ -160,6 +169,7 @@ export async function getPlayer(playerId: string) {
 
 export async function removePlayer(playerId: string) {
   try {
+    await ensureUserAuthenticated();
     await pb.collection('players').delete(playerId);
   } catch (error) {
     console.error('Error removing player:', error);
@@ -275,6 +285,42 @@ export async function deleteAllMatches(tournamentId: string) {
     await Promise.all(matches.map(match => pb.collection('matches').delete(match.matchId)));
   } catch (error) {
     console.error('Error deleting matches:', error);
+    throw error;
+  }
+}
+
+// Real-time subscription for tournament updates
+export async function getTournamentRealTime(tournamentId: string, callback: (tournament: any) => void) {
+  try {
+    await ensureUserAuthenticated();
+
+    return pb.collection('tournaments').subscribe(tournamentId, (e) => {
+      console.log('Real-time event received for tournament:', e);
+      if (e.action === 'update') {
+        callback(e.record);
+      }
+    });
+  } catch (error) {
+    console.error('Error subscribing to tournament:', error);
+    throw error;
+  }
+}
+
+// Real-time subscription for matches updates
+export async function getMatchesRealTime(tournamentId: string, callback: (matches: any[]) => void) {
+  try {
+    await ensureUserAuthenticated();
+
+    return pb.collection('matches').subscribe(`*`, (e) => {
+      console.log('Real-time event received for matches:', e);
+      if (e.action === 'create' || e.action === 'update' || e.action === 'delete') {
+        getMatches(tournamentId)
+          .then(callback)
+          .catch((error) => console.error('Error fetching matches:', error));
+      }
+    });
+  } catch (error) {
+    console.error('Error subscribing to matches:', error);
     throw error;
   }
 }

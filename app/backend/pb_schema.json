@@ -775,8 +775,8 @@
   },
   {
     "id": "pbc_2541054544",
-    "listRule": "@request.auth.id = tournamentId.ownerId",
-    "viewRule": "@request.auth.id = tournamentId.ownerId",
+    "listRule": "@request.auth.id = tournamentId.ownerId || (\n  @collection.players.tournamentId ?= tournamentId\n  && @collection.players.userId ?= @request.auth.id\n)",
+    "viewRule": "@request.auth.id = tournamentId.ownerId || (\n  @collection.players.tournamentId ?= tournamentId\n  && @collection.players.userId ?= @request.auth.id\n)",
     "createRule": "@request.auth.id != ''",
     "updateRule": "@request.auth.id = tournamentId.ownerId",
     "deleteRule": "@request.auth.id = tournamentId.ownerId",
@@ -886,11 +886,11 @@
   },
   {
     "id": "pbc_3072146508",
-    "listRule": "tournamentId.ownerId = @request.auth.id",
-    "viewRule": "",
-    "createRule": "",
-    "updateRule": null,
-    "deleteRule": null,
+    "listRule": "tournamentId.ownerId = @request.auth.id \n|| (\n  @collection.players.tournamentId ?= tournamentId\n  && @collection.players.userId = @request.auth.id\n)",
+    "viewRule": "tournamentId.ownerId = @request.auth.id || userId = @request.auth.id",
+    "createRule": "@request.auth.id != ''",
+    "updateRule": "tournamentId.ownerId = @request.auth.id || userId = @request.auth.id",
+    "deleteRule": "tournamentId.status != 'playing' && (\n  tournamentId.ownerId = @request.auth.id || userId = @request.auth.id\n)",
     "name": "players",
     "type": "base",
     "fields": [
@@ -934,6 +934,19 @@
         "required": false,
         "system": false,
         "type": "text"
+      },
+      {
+        "cascadeDelete": false,
+        "collectionId": "_pb_users_auth_",
+        "hidden": false,
+        "id": "relation1689669068",
+        "maxSelect": 1,
+        "minSelect": 0,
+        "name": "userId",
+        "presentable": false,
+        "required": false,
+        "system": false,
+        "type": "relation"
       },
       {
         "hidden": false,
